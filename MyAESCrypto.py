@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# This is a simple script to encrypt a message using AES
+# This is a simple script to encrypt/decrypt a message using AES
 # with CBC mode in Python 3.
 
 import builtins as __builtin__
@@ -13,8 +13,6 @@ import random
 import argparse
 
 import config
-
-#Return value: "[0,0,0,0,0,0]0↵modelName=Archer MR600↵description=AC1200 4G LTE Advanced Cat6 Gigabit Router↵X_TP_IsFD=3↵[0,0,0,0,0,0]1↵numberOfVirtualPorts=4↵[0,0,0,0,0,0]2↵mode=LTE↵DSLL3ForwardingName=NO_INTERFACE↵ETHL3ForwardingName=NO_INTERFACE↵_3GL3ForwardingName=NO_INTERFACE↵LTEL3ForwardingName=NO_INTERFACE↵DSLL3IPv6ForwardingName=NO_INTERFACE↵ETHL3IPv6ForwardingName=NO_INTERFACE↵LTEL3IPv6ForwardingName=NO_INTERFACE↵LTEDataSwitch=1↵lteBackupEnable=1↵[cgi]3↵var userType="Admin";↵var bSecured=0;↵var clientLocal=1;↵var clientIp="192.168.1.106";↵var clientMac="10:40:F3:7C:20:48";↵$.ret=0;↵[error]0↵"
 
 class MyAESCipher:
     def __init__(self, key):
@@ -152,15 +150,6 @@ class MyAES:
             e['func_o'](e, t, r, i)
             self.this['_prevBlock'] = n
             
-            # processBlock: function(t, r) {
-            #     var e = this._cipher
-            #       , i = e.blockSize
-            #       , n = t.slice(r, r + i);
-            #     e.decryptBlock(t, r),
-            #     o.call(this, t, r, i),
-            #     this._prevBlock = n
-            # }
-
         def _decryptBlock(self, t, r):
             e = t[r + 1]
             t[r + 1] = t[r + 3]
@@ -173,40 +162,10 @@ class MyAES:
             t[r + 3] = e
             myprint('t=',t)
             
-            # decryptBlock: function(t, r) {
-            #     var e = t[r + 1];
-            #     t[r + 1] = t[r + 3],
-            #     t[r + 3] = e,
-            #     this._doCryptBlock(t, r, this._invKeySchedule, v, _, y, g, f);
-            #     e = t[r + 1];
-            #     t[r + 1] = t[r + 3],
-            #     t[r + 3] = e
-            # },
-            
-        #VM: 111
-        # def _stringify(self, t):
-        #     r = t['words']
-        #     e = t['sigBytes']
-        #     i = list()
-        #     n = 0
-        #     while n < e:
-        #         o = r[n >> 2] >> 24 - n % 4 * 8 & 255
-        #         i.append(chr(o))
-        #         n += 1
-        #     return "".join(i)
-        
-            #stringify: function(t) {
-            #for (var r = t.words, e = t.sigBytes, i = [], n = 0; n < e; n++) {
-            #    var o = r[n >>> 2] >>> 24 - n % 4 * 8 & 255;
-            #    i.push(String.fromCharCode(o))
-            #}
-            #return i.join("")
-
         # VM: 125
         def stringify(self, this):
             t = this['ciphertext']
             #myprint('t=',t)
-            #ret =  self._stringify(t)
             r = t['words']
             e = t['sigBytes']
             i = list()
@@ -217,17 +176,7 @@ class MyAES:
                 n += 1
             return "".join(i)
 
-            #myprint('ret=',ret)
-            #return ret
-            
-            #stringify: function(t) {
-            #try {
-            #    return decodeURIComponent(escape(a.stringify(t)))
-            #} catch (t) {
-            #    throw new Error("Malformed UTF-8 data")
-            #}
-
-        VM: 1214
+        #VM: 1214
         def parse(self, t, pthis):  # pthis = parent _this
             r = self._parse(pthis, t)
             e = r['words']
@@ -244,18 +193,6 @@ class MyAES:
             myprint('ret=',ret)
             return ret
     
-        #     var r = s.parse(t)
-        #       , e = r.words;
-        #     if (1398893684 == e[0] && 1701076831 == e[1]) {
-        #         var i = c.create(e.slice(2, 4));
-        #         e.splice(0, 4),
-        #         r.sigBytes -= 16
-        #     }
-        #     return p.create({
-        #         ciphertext: r,
-        #         salt: i
-        #     })
-        
         def _parse(self, pthis, t):
             e = _map = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
             r = len(t)
@@ -288,8 +225,8 @@ class MyAES:
             myprint('e=',e)
             while o < r:
                 if o % 4:
-                    s = e[ord(t[o-1])] << o % 4 * 2   # e[t.charCodeAt(o - 1)] << o % 4 * 2
-                    a = e[ord(t[o])] >> 6 - o % 4 * 2 # e[t.charCodeAt(o)] >>> 6 - o % 4 * 2;
+                    s = e[ord(t[o-1])] << o % 4 * 2
+                    a = e[ord(t[o])] >> 6 - o % 4 * 2
                     try:
                         i[n >> 2] |= toSigned32((s | a) << 24 - n % 4 * 8)
                     except:
@@ -321,7 +258,6 @@ class MyAES:
             self.this['cfg']['padding'] = dict()
             self.this['cfg']['padding']['pad'] = self._parent._pad
             self.this['cfg']['padding']['unpad'] = self._parent._unpad
-            #self.this['cfg']['mode'] = None
         
             self.this['_key'] = dict()
             self.this['_key'] = key
@@ -346,12 +282,6 @@ class MyAES:
             e['encryptBlock'](t, r)
             self.this['_prevBlock'] = slice(t, r, r + i)
             myprint('self.this[_prevBlock]=',self.this['_prevBlock'])
-
-            # var e = this._cipher
-            #   , i = e.blockSize;
-            # o.call(this, t, r, i),
-            # e.encryptBlock(t, r),
-            # this._prevBlock = t.slice(r, r + i)
             
         #VM: 1701
         def _encryptBlock(self, t, r): # this=_cipher
@@ -368,56 +298,30 @@ class MyAES:
         i = 0
         r = 0
         while r < 256:
-            #var n = i ^ i << 1 ^ i << 2 ^ i << 3 ^ i << 4;
             n = i ^ i << 1 ^ i << 2 ^ i << 3 ^ i << 4
-        
-            #n = n >>> 8 ^ 255 & n ^ 99,
             n = n >> 8 ^ 255 & n ^ 99
-        
-            #h[e] = n
             self._h[e] = n
         
-            #var o = t[f[n] = e]
             self._f[n] = e
             o = self._t[self._f[n]]
-
-            #, s = t[o]
             s = self._t[o]
         
-            #, a = t[s]
             a = self._t[s]
-
-            #, c = 257 * t[n] ^ 16843008 * n;
             c = 257 * self._t[n] ^ 16843008 * n
         
-            #l[e] = c << 24 | c >>> 8,
             self._l[e] = toSigned32(c << 24 | c >> 8)
-        
-            #u[e] = c << 16 | c >>> 16,
             self._u[e] = toSigned32(c << 16 | c >> 16)
-        
-            #d[e] = c << 8 | c >>> 24,
             self._d[e] = toSigned32(c << 8 | c >> 24)
         
-            #p[e] = c;
             self._p[e] = c
                 
-            #c = 16843009 * a ^ 65537 * s ^ 257 * o ^ 16843008 * e;
             c = 16843009 * a ^ 65537 * s ^ 257 * o ^ 16843008 * e
         
-            #v[n] = c << 24 | c >>> 8,
             self._v[n] = toSigned32(c << 24 | c >> 8)
-        
-            #_[n] = c << 16 | c >>> 16,
             self.__[n] = toSigned32(c << 16 | c >> 16)
-            
-            #y[n] = c << 8 | c >>> 24,
             self._y[n] = toSigned32(c << 8 | c >> 24)
-        
-            #g[n] = c,
             self._g[n] = toSigned32(c)
         
-            #e ? (e = o ^ t[t[t[a ^ o]]], i ^= t[t[i]]) : e = i = 1
             if e:
                 e = o ^ self._t[self._t[self._t[a ^ o]]]
                 i ^= self._t[self._t[i]]
@@ -540,7 +444,6 @@ class MyAES:
             if c < 4 or o <= 4:
                 a[c] = s
             else:
-                #a[c] = v[h[s >> 24]] ^ _[h[s >> 16 & 255]] ^ y[h[s >> 8 & 255]] ^ g[h[255 & s]]
                 s0 = s
                 s = int(bin(s & 0b11111111111111111111111111111111),2)
                 #myprint('aa',s0,s,s0>>24,s>>24)
@@ -705,13 +608,6 @@ class MyAES:
             myprint('passing')
             pass
 
-        # clamp: function() {
-        #     var t = this.words
-        #       , r = this.sigBytes;
-        #     t[r >>> 2] &= 4294967295 << 32 - r % 4 * 8,
-        #     t.length = f.ceil(r / 4)
-        # },
-    
     def _pad(self, t, r):
         e = 4 * r
         i = e - t['sigBytes'] % e
@@ -731,7 +627,6 @@ class MyAES:
         
         c = dict()
         c['words'] = o
-        #this.sigBytes = null != r ? r : 4 * t.length
         if None != i:
             c['sigBytes'] = i
         else:
@@ -745,18 +640,12 @@ class MyAES:
         t['sigBytes'] -= r
         myprint('r=',r,'t=',t)
         
-        #unpad: function(t) {
-        #    var r = 255 & t.words[t.sigBytes - 1 >>> 2];
-        #    t.sigBytes -= r
-        #}
-
     def _process(self, this, t): # this=_cipher
         r = this['_data']
         e = r['words']
         i = r['sigBytes']
         n = this['blockSize']
         o = i / (4 * n)
-        #s = (o = t ? f.ceil(o) : math.max((0 | o) - this._minBufferSize, 0)) * n
         if o : #DP o == t
             s = math.ceil(o) * 4
             myprint('0 s=',s)
@@ -781,22 +670,6 @@ class MyAES:
         myprint('ret=',ret)
         return ret
             
-            # _process: function(t) {
-            # var r = this._data
-            #   , e = r.words
-            #   , i = r.sigBytes
-            #   , n = this.blockSize
-            #   , o = i / (4 * n)
-            #   , s = (o = t ? f.ceil(o) : f.max((0 | o) - this._minBufferSize, 0)) * n
-            #   , a = f.min(4 * s, i);
-            # if (s) {
-            #     for (var c = 0; c < s; c += n)
-            #         this._doProcessBlock(e, c);
-            #     var h = e.splice(0, s);
-            #     r.sigBytes -= a
-            # }
-            # return new l.init(h,a)
-
     def doCryptBlock(self, this, t, r, e, i, n, o, s, a): # this = _cipher
         myprint(t)
 
@@ -897,17 +770,6 @@ class MyAES:
             
         myprint('t=',t)
 
-        # function o(t, r, e) {
-        #     var i = this._iv;
-        #     if (i) {
-        #         var n = i;
-        #         this._iv = void 0
-        #     } else
-        #         n = this._prevBlock;
-        #     for (var o = 0; o < e; o++)
-        #         t[r + o] ^= n[o]
-        # }
-
     def stringify(self, this):
         myprint('TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD ')
         sys.exit(1)
@@ -946,26 +808,8 @@ class MyAES:
         myprint('this=',this)
         return this
 
-        #     concat: function(t) {
-        #     var r = this.words
-        #       , e = t.words
-        #       , i = this.sigBytes
-        #       , n = t.sigBytes;
-        #     if (this.clamp(),
-        #     i % 4)
-        #         for (var o = 0; o < n; o++) {
-        #             var s = e[o >>> 2] >>> 24 - o % 4 * 8 & 255;
-        #             r[i + o >>> 2] |= s << 24 - (i + o) % 4 * 8
-        #         }
-        #     else
-        #         for (o = 0; o < n; o += 4)
-        #             r[i + o >>> 2] = e[o >>> 2];
-        #     return this.sigBytes += n,
-        #     this
-
     def _parse(self, this, t, r):  # this = pthis, t = encryptedText, r = self._this['i']['format']
         myprint('t=',t)
-        #return "string" == typeof t ? r.parse(t, this) : t
         if 'str' in str(type(t)):
             return r['parse'](t, this)
         else:
@@ -973,7 +817,6 @@ class MyAES:
 
     def _b64Stringify(self, this, t): # this = b64enc
         r = t['words']
-        # r= 0: 1667419506 1: -237254494 2: 476969420 3: -1861129931
         e = t['sigBytes']
         i = this['_map']
         myprint(r,e,i)
@@ -990,7 +833,6 @@ class MyAES:
             a = 0
             while a < 4 and o + .75 * a < e:
                 #myprint('2:',a,e,s,o,s >> 6 * (3 - a) & 63,n,o + .75 * a)
-                #n.push(i.charAt(s >>> 6 * (3 - a) & 63));
                 n.append(i[s >> 6 * (3 - a) & 63])
                 a += 1
             o += 3
@@ -1001,24 +843,9 @@ class MyAES:
                 n.append(c)
         return "".join(n)
             
-        # stringify: function(t) {
-        #     var r = t.words
-        #       , e = t.sigBytes
-        #       , i = this._map;
-        #     t.clamp();
-        #     for (var n = [], o = 0; o < e; o += 3)
-        #         for (var s = (r[o >>> 2] >>> 24 - o % 4 * 8 & 255) << 16 | (r[o + 1 >>> 2] >>> 24 - (o + 1) % 4 * 8 & 255) << 8 | r[o + 2 >>> 2] >>> 24 - (o + 2) % 4 * 8 & 255, a = 0; a < 4 && o + .75 * a < e; a++)
-        #             n.push(i.charAt(s >>> 6 * (3 - a) & 63));
-        #     var c = i.charAt(64);
-        #     if (c)
-        #         for (; n.length % 4; )
-        #             n.push(c);
-        #     return n.join("")
-        # },
-        
     #VM:1205
-    def _stringify(self, this): # this = object returned by _AESencrypt()
-        myprint('TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD ')                
+    def _stringify(self, this):
+        myprint('TBD TBD TBD TBD TBD TBD TBD TBD TBD TBD')
         r = this['ciphertext']
         try:
             e = this['salt']
@@ -1039,26 +866,14 @@ class MyAES:
         b64enc['_map'] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
         return self._b64Stringify(b64enc, i)
             
-        # stringify: function(t) {
-        #     var r = t.ciphertext
-        #       , e = t.salt;
-        #     if (e)
-        #         var i = c.create([1398893684, 1701076831]).concat(e).concat(r);
-        #     else
-        #         i = r;
-        #     return i.toString(s)
-        # },
-        
     #VM: 1200 / 45
-    def _toString(self, this): # this = object returned by _CryptoJSAESencrypt()
-        #return (t || this.formatter).stringify(this)
+    def _toString(self, this):
         formatter = this['formatter']
         ret = formatter['stringify'](this)
         myprint(ret)
         return ret
 
 ####        
-
 def splice(d, s, e):
     myprint('d=',d,'s=',s,'e=',e)
     r = dict()
@@ -1211,13 +1026,12 @@ def main():
     if args.encryptMode == True:
         print('TESTING ENCRYPTION')
         #msg = input('Message...: ')
-        #msg = "admin" + "\n" + "mc212193"
+        #key = input('Key...: ')
+        #iv = input('Init Vector...: ')
 
         MSG2ENCRYPT = "1&1&1&8" + "\r\n" + "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,3" + "\r\n" + "modelName" + "\r\n" + "description" + "\r\n" + "X_TP_IsFD" + "\r\n" + "[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1" + "\r\n" + "numberOfVirtualPorts" + "\r\n" + "[SYS_MODE#0,0,0,0,0,0#0,0,0,0,0,0]2,0" + "\r\n" + "[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0" + "\r\n"
         
         print('Encrypting: %s' % MSG2ENCRYPT)
-        #key = input('Key...: ')
-        #iv = input('Init Vector...: ')
         print('Encrypted Text:', MyAESCipher(key).encrypt(iv, MSG2ENCRYPT))
 
     if args.decryptMode == True:
@@ -1236,8 +1050,4 @@ def main():
 
 ####
 if __name__ == '__main__':
-    #if len(sys.argv) != 2:
-    #    print('Syntax: %s E or D' % sys.argv[0])
-    #    sys.exit(1)
-    #main(sys.argv[1])
     main()
