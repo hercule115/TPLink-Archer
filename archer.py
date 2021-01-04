@@ -37,9 +37,7 @@ import MyAESCrypto
 
 DEFAULT_HOSTNAME = '192.168.1.1'
 HOSTNAME = ''
-#USERNAME = 'admin'
-#PASSWORD = 'mc212193'
-USERNAME = ''
+USERNAME = 'admin'
 PASSWORD = ''
 LOGFILE = ''
 
@@ -101,7 +99,7 @@ class MyXcryptor():
         return self.rsa.encrypt(s, None, None)
 
     #VM:151
-    def AESEncrypt(self, data, isLogin):	# data = name + "\n" + password
+    def AESEncrypt(self, data, isLogin):
         result = dict()
         result['data'] = self.aes.encrypt(data)
         dataLen = len(result['data'])
@@ -610,7 +608,7 @@ class MyRSA():
             #print(i,r)
             if 0 != r:
                 return r
-            i -= 1	# DPDPDP ADDED 29/12/20
+            i -= 1	# DP ADDED 29/12/20
         return 0
 
     #encrypt.js: 156
@@ -910,15 +908,15 @@ class MyRSA():
 class Archer:
     def __init__(self, hostName, userName, userPassword, session):
         self._hostName = hostName
-        self._name = userName
+        self._name     = userName
         self._password = userPassword
-        self._session = session
+        self._session  = session
         
         self._md5Hash = ''
+        self._aesKey  = ''
+        self._aesIv   = ''
         self._aesKeyString = ''
-        self._aesKey = ''
-        self._aesIv = ''
-
+        
         self.n = 0 # Public RSA key (from getParm())
         self.e = 0 # Public RSA exponent (from getParm())
 
@@ -937,6 +935,7 @@ class Archer:
         self._headers.setHeader('Host', self._hostName)
         self._headers.setHeader('Referer', 'http://%s/' % (self._hostName))
 
+        # Requests to send with _cgi_gdpr() script
         self._configInfoCgiGdprRqst = dict()
         self._configInfoCgiGdprRqst[0] = "1&1&1&8" + "\r\n" + "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,3" + "\r\n" + "modelName" + "\r\n" + "description" + "\r\n" + "X_TP_IsFD" + "\r\n" + "[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1" + "\r\n" + "numberOfVirtualPorts" + "\r\n" + "[SYS_MODE#0,0,0,0,0,0#0,0,0,0,0,0]2,0" + "\r\n" + "[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0" + "\r\n"
 
@@ -975,7 +974,7 @@ class Archer:
 
         self._configInfoCgiGdprRqst[17] = "1&1" + "\r\n" + "[DIAG_TOOL#0,0,0,0,0,0#0,0,0,0,0,0]0,1" + "\r\n" + "LastResult" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]1,0" + "\r\n"
 
-        #Scripts usedto logout from router
+        #Scripts used to logout from router
         self._logoutCgiGdprRqst = dict()
         self._logoutCgiGdprRqst[0] = "8" + "\r\n" + "[/cgi/clearBusy#0,0,0,0,0,0#0,0,0,0,0,0]0,0" + "\r\n"
         self._logoutCgiGdprRqst[1] = "8" + "\r\n" + "[/cgi/logout#0,0,0,0,0,0#0,0,0,0,0,0]0,0"  + "\r\n"
@@ -1013,7 +1012,6 @@ class Archer:
         if doParse:
             soup = BeautifulSoup(r.text, 'html.parser')
             #myprint('head=',soup.head)
-            #<script type="text/javascript">var token="351ffcfd8eb26b59cefb7613173b71";var locale_language="en_US"</script>
             containers = soup.find_all('script', type = 'text/javascript')
             # Search for the token variable
             varName = 'token'
@@ -1161,7 +1159,6 @@ class Archer:
         # POST login request
         e = userInfo = None
         self._doLogin(e, n, 1, "#pc-login-btn", userInfo)
-
 
     # Logout from router
     def logout(self):
@@ -1381,7 +1378,7 @@ class Archer:
         myprint('Decrypted response text=',v)
         result[rqstNo] = v
 
-    # Parse getParm() response. Initialize nn,ee,seq variables used by AES and RSA encryptors
+    # Parse getParm() response. Initialize nn,ee,seq variables used by RSA encryptor
     def _parseParm(self, s):
         global LOCALTEST
         global ee, nn, seq
@@ -1448,7 +1445,7 @@ class Archer:
         # Parse Response Headers and update generic headers with new cookies
         myprint('Response cookies=',r.cookies)
         rHdr = Headers(r.headers)
-        rCookieHdr = rHdr.getHeader('Set-Cookie') # JSESSIONID=813c95b25249e9f0753e717a9b8415; Path=/; HttpOnly
+        rCookieHdr = rHdr.getHeader('Set-Cookie')
         jSessionId = getCookie(rCookieHdr, 'JSESSIONID')
         newCookieHdr = cookieHdr + "; " + jSessionId
         self._headers.setHeader('Cookie', newCookieHdr)
@@ -1477,19 +1474,12 @@ class Headers():
     def getCookie(self, cookie):
         for k,v in self._h.items():
             if k == 'Set-Cookie':
-                #k='Set-Cookie':
-                #v='JSESSIONID=4c6af7c33b78d1b9e54b711e5ce6a2; Path=/; HttpOnly'
                 cookies = v.split(';')
-                #cookies[0]='JSESSIONID=4c6af7c33b78d1b9e54b711e5ce6a2'
-                #cookies[1]='Path=/'
-                #cookies[2]='HttpOnly'
                 for c in cookies:
                     try:
                         cc = c.split('=')
-                        #cc[0]='JSESSIONID'
-                        #cc[1]='4c6af7c33b78d1b9e54b711e5ce6a2'
                     except:
-                        print('Skipping %s' % cc)
+                        myprint('Skipping %s' % cc)
                         continue
                     if cc[0] == cookie:
                         return cc[1]
@@ -1510,20 +1500,19 @@ def myprint(*args, **kwargs):
     # are present in kwargs
 
     class color:
-        PURPLE = '\033[95m'
-        CYAN = '\033[96m'
-        DARKCYAN = '\033[36m'
-        BLUE = '\033[94m'
-        GREEN = '\033[92m'
-        YELLOW = '\033[93m'
-        RED = '\033[91m'
-        BOLD = '\033[1m'
+        PURPLE    = '\033[95m'
+        CYAN      = '\033[96m'
+        DARKCYAN  = '\033[36m'
+        BLUE      = '\033[94m'
+        GREEN     = '\033[92m'
+        YELLOW    = '\033[93m'
+        RED       = '\033[91m'
+        BOLD      = '\033[1m'
         UNDERLINE = '\033[4m'
         END = '\033[0m'
 
     if config.DEBUG:
         __builtin__.print('%s%s()%s:' % (color.BOLD, inspect.stack()[1][3], color.END), *args, **kwargs)
-    #__builtin__.print('%s():' % inspect.stack()[1][3], *args, **kwargs)
 
 def utf8Parse(t):
     r = len(str(t))
@@ -1552,21 +1541,16 @@ def dumpToFile(fname, plainText):
         sys.exit(1)
 
 def getCookie(cookieStr, cookie):
-    #'JSESSIONID=4c6af7c33b78d1b9e54b711e5ce6a2; Path=/; HttpOnly'
     if not cookie in cookieStr:
         return ''
 
     cookies = cookieStr.split(';')
-    #cookies[0]='JSESSIONID=4c6af7c33b78d1b9e54b711e5ce6a2'
-    #cookies[1]='Path=/'
-    #cookies[2]='HttpOnly'
     for c in cookies:
         if c.startswith(cookie):
             return c
     return ''
 
 def getJSVarAssignStmt(plainText, varName):
-    #var token="e537e0ee16573648443405feec8d84";var locale_language="en_US"
     myprint(plainText, varName)
     if plainText == '':
         return ''
@@ -1574,11 +1558,11 @@ def getJSVarAssignStmt(plainText, varName):
     if not ';' in plainText:
         plainText += ';'
     try:
-        vars = plainText.split(';')	# "vars = 'var token="e537e0ee16573648443405feec8d84"', 'var locale_language="en_US"'
+        vars = plainText.split(';')
         for var in vars:
             try:
-                v = var.split(' ')[1]	# v = 'var', 'token="e537e0ee16573648443405feec8d84"'
-                if varName in v:	# v[1] = 'token="e537e0ee16573648443405feec8d84"'
+                v = var.split(' ')[1]
+                if varName in v:
                     myprint(v)
                     return v
             except:
@@ -1607,7 +1591,6 @@ def parseCgiGdprInfo(infoDict):
                     parm = parm[4:]
                 if value.endswith(';'):		# Remove ';' suffix
                     value = value[:-1]
-                #configInfo[parm] = value
                 # Append value if existing, strip leading ';'
                 try:
                     if value in configInfo[parm]:
@@ -1748,8 +1731,4 @@ def main():
         
 # Entry point    
 if __name__ == "__main__":
-    #if len(sys.argv) != 2:
-    #    print('Syntax: %s hostname' % sys.argv[0])
-    #    sys.exit(1)
-    #main(sys.argv[1])
     main()
