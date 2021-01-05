@@ -5,8 +5,6 @@ import inspect
 import os
 import sys
 import time
-#import socket
-#import requests
 import argparse
 import getpass
 
@@ -109,7 +107,13 @@ def initConfig(moduleDirPath, mandatoryFields, optionalFields):
 
 # Entry point    
 if __name__ == "__main__":
-    mandatoryFields = [('b','DEBUG'), ('s','NOIP_USERNAME'), ('p','NOIP_PASSWORD'), ('s','NOIP_HOSTNAME'), ('d','TIMEOUT')]
-    optionalFields  = [('s','ROUTER_USERNAME'), ('p','ROUTER_PASSWORD'), ('s','ROUTER_HOSTNAME')]
+    mandatoryFields = [('b','DEBUG'),
+                       ('s','NOIP_USERNAME'),
+                       ('p','NOIP_PASSWORD'),
+                       ('s','NOIP_HOSTNAME'),
+                       ('d','TIMEOUT')]
+    optionalFields  = [('s','ROUTER_USERNAME'),
+                       ('p','ROUTER_PASSWORD'),
+                       ('s','ROUTER_HOSTNAME')]
 
     initConfig('.', mandatoryFields, optionalFields)
