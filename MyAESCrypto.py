@@ -76,11 +76,6 @@ class MyAES:
         self._iv  = int(str(int(time.time() * 1e6) + int(random.random() * 1e3))[0:16])
         self._key = int(str(int(time.time() * 1e6) + int(random.random() * 1e3))[0:16])
 
-        if config.LOCALTEST:
-            myprint('WARNING: Using hardcoded values')
-            self._iv  = AESIV
-            self._key = AESKEY
-
         self._ivUtf8  = utf8Parse(self._iv)
         self._keyUtf8 = utf8Parse(self._key)
             
