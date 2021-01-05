@@ -1014,32 +1014,38 @@ def main():
         print('You must set the requested mode (-e / -x)')
         sys.exit(1)
 
-    IV = "1609088003850873"; KEY= "1609088003850494"
-    key = KEY
-    iv  = IV
+    # Hardcoded key and iv for internal testing
+    key = "1609088003850494"
+    iv  = "1609088003850873" 
 
+    # Hardcoded text to encrypt/decrypt for internal testing
+    PLAIN_TEXT     = "This is a text message encrypted by my own AES encoding algorithm. Enjoy!"
+    ENCRYPTED_TEXT = "u1LrU4tN+9fr8kZgrIvGJKd76vhHjFpT29hHxcS0W7U9Rxe+YHmi28CPFiz+fkGYsyuj3X9XKYxj0zZS82hhCNjWlD7BUeWLbLcLVCvUMsE="
+    
     if args.encryptMode == True:
         print('TESTING ENCRYPTION')
-        #msg = input('Message...: ')
         #key = input('Key...: ')
         #iv = input('Init Vector...: ')
 
-        MSG2ENCRYPT = "1&1&1&8" + "\r\n" + "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,3" + "\r\n" + "modelName" + "\r\n" + "description" + "\r\n" + "X_TP_IsFD" + "\r\n" + "[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1" + "\r\n" + "numberOfVirtualPorts" + "\r\n" + "[SYS_MODE#0,0,0,0,0,0#0,0,0,0,0,0]2,0" + "\r\n" + "[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0" + "\r\n"
-        
-        print('Encrypting: %s' % MSG2ENCRYPT)
-        print('Encrypted Text:', MyAESCipher(key).encrypt(iv, MSG2ENCRYPT))
+        print('Encrypting Text: %s' % PLAIN_TEXT)
+        encryptedText = MyAESCipher(key).encrypt(iv, PLAIN_TEXT)
+        print('Encrypted Text :', encryptedText)
 
+        if encryptedText == ENCRYPTED_TEXT:
+              print('Encryption succeed!')
+              
     if args.decryptMode == True:
         print('\nTESTING DECRYPTION')
 
-        MSG2DECRYPT = "xAQ1oviGtYOHfQz7WLDRp1DtE2gp6CwElmmZ5/+LkWdzJzhdfyQBcmDaG8Zyn5e77ixVK0HsaHdVTRl+dlQthHG9bljulvYMEfXGhQrjwoITmlGKpbKrHgVHH/vmHOG75YMktdkeaICJ0Z0f2sOcsMqWCymWTe6Qfua7MvSEd/SWmwk1RRX25ZldrAYZYCBASrtb5SSTMRICbihrnrfLn41MmgA96+bDA9/Zt6pg4vDq/ERVOzqWXjsnyjXj8pOu5oTqti0Y99ilRfqQDHk1UuN/TWtBEn1B9hOE86lgZhmZ7vZuZUNzWiPjd6IgKj95lX1GB2sGWJKJRdzEQCk+zrHoEA/Gg6MzmFG9B5jf561DpqP8soxtsW1CiBmKOvho3DpN/bws1exBHxgkYMJ4wTM9V0px+Ppu1GDKIMT2DKZpYAcfDy77s2QDZXQ32R9IcmTeUyN322aFekcyqI4VAd7bX1j7fh2o+VgiEcJkJOLmu0yrOCb0nwi3i46RZ/2NkCHlVkq8YqniV0IT3To7KBI6ZFCGCgPu1PwuO7xl/uWgJjBCSqaVh1F5haD4h4zpV2Wf2/aD/R4Pfx2SWS89b6Pwra1Kz59r/FVxcviS1SioPdRtpDD3bLGiRiF5/IcHaJ9lSihdlr0/koiu8JmRmh80z9vYCnpg7T4N3szJP6TqKooF2KWfAIXfRarAE3vHdJzvZEJMUZaqpz0hkdac55GQWfny+tyAmUPsYqIcrWkbX889Kzl6p14QtcWUFoY5mfmNP5dKWjqI2OUCWaV0mA=="
-        
-        print('Decrypting Text: %s' % MSG2DECRYPT)
-        #cte = input('Ciphertext: ')
+        print('Text to Decrypt: %s' % ENCRYPTED_TEXT)
         #key = input('Key...: ')
         #iv = input('Init Vector...: ')
-        print('Decrypted Text:', MyAESCipher(key).decrypt(iv, MSG2DECRYPT))
+        decryptedText = MyAESCipher(key).decrypt(iv, ENCRYPTED_TEXT)
+        print('Decrypted Text:', decryptedText)
 
+        if decryptedText == PLAIN_TEXT:
+              print('Decryption succeed!')
+              
     if args.logFile and args.logFile != '':
         sys.stdout.close()
 
