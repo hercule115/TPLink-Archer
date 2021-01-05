@@ -94,7 +94,7 @@ def createConfig(mandatoryFields, optionalFields):
         sys.exit(1)
 
 def initConfig(moduleDirPath, mandatoryFields, optionalFields):
-    configModulePath = os.path.join(moduleDirPath, 'config.py')
+    #configModulePath = os.path.join(moduleDirPath, 'config.py')
     try:
         import config
         globals()['config'] = config
