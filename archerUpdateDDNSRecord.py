@@ -266,69 +266,6 @@ def parse_argv():
     return args
 
 ####
-#
-# Import Archer module. Must be called *after* parsing arguments
-#
-def importArcher(moduleDirPath):
-    archerModulePath = os.path.join(moduleDirPath, 'archer.py')
-    tplas = importModuleByPath(archerModulePath)
-    globals()['tplas'] = tplas
-
-#
-# If config.py does not exist or is incomplete, initialize it
-#
-def o_initConfig(moduleDirPath):
-    configModulePath = os.path.join(moduleDirPath, 'config.py')
-    try:
-        #config = importModuleByPath(configModulePath)
-        import config
-        globals()['config'] = config
-    except:
-        print('Initializing config.py')
-    else:
-        if config.NOIP_USERNAME != '' and config.NOIP_PASSWORD != '' and config.NOIP_HOSTNAME != '':
-            #print('Skipping config initialization')
-            return
-
-    h = input('NOIP Hostname: ')
-    u = input('NOIP Username: ')
-    p = getpass.getpass(prompt='NOIP Password: ')
-
-    print('Initializing NOIP parameters in config.py')
-    
-    defaultConfigLines = ["DEBUG = False\n",
-                          "LOCALTEST = False\n",
-                          "LOGFILE = ''\n",
-                          "\n",
-                          "# Archer Router connection parameters\n",
-                          "ROUTER_HOSTNAME = '192.168.1.1'\n",
-                          "ROUTER_USERNAME = 'admin'\n",
-                          "ROUTER_PASSWORD = ''\n",
-                          "\n",
-                          "# NO-IP connection parameters\n",
-                          "NOIP_USERNAME = " + "'" + u + "'\n",
-                          "NOIP_PASSWORD = " + "'" + p + "'\n",
-                          "NOIP_HOSTNAME = " + "'" + h + "'\n"
-    ]
-
-    # Create config.py with collected information
-    try:
-        with open('config.py', 'w') as configFile:
-            configFile.writelines(defaultConfigLines)
-    except IOError as e:
-        msg = "I/O error: Creating %s: %s" % ('config.py', "({0}): {1}".format(e.errno, e.strerror))
-        print(msg)
-        sys.exit(1)
-
-    # Import generated module
-    try:
-        #config = import_module_by_path(configModulePath)
-        import config
-        globals()['config'] = config
-    except:
-        print('config.py initialization has failed. Exiting')
-        sys.exit(1)
-
 def importModuleByPath(path):
     name = os.path.splitext(os.path.basename(path))[0]
     if sys.version_info[0] == 2:
@@ -355,13 +292,6 @@ def importModule(moduleDirPath, moduleName, name):
 ####
 def main():
     print('%s: Running at: %s' % (sys.argv[0], time.strftime('%m/%d/%y %H:%M:%S', time.localtime())))
-    
-    # Absolute pathname of directory containing this module
-    #moduleDirPath = os.path.dirname(module_path(getIpAddressFromRouter))
-    
-    # Initialize/Import config.py
-    #initConfig(moduleDirPath)
-
     # Parse arguments 
     args = parse_argv()
 
@@ -371,9 +301,6 @@ def main():
 
     setConfigParams(args)
         
-    # config parameters are updated. Import Archer module
-    #importArcher(moduleDirPath)
-
     if args.dumpInformation:
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
         print('%s: Router Configuration (IP: %s)' % (curTime, config.ROUTER_HOSTNAME))
@@ -398,8 +325,8 @@ def main():
         else:
             for item in rec:
                 dnsRecord = ','.join([str(item), ''])
-
-        dnsIpAddr = dnsRecord.rstrip(',')
+            dnsRecord = dnsRecord.rstrip(',')
+        dnsIpAddr = dnsRecord
         #print('Current DDNS Record for %s: %s' % (config.NOIP_HOSTNAME, dnsIpAddr))
     else:
         dnsIpAddr = getHostByName(config.NOIP_HOSTNAME)
@@ -414,7 +341,8 @@ def main():
 
     if args.checkonly:
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
-        print("{}: DNS IP address of {} is: {}".format(curTime, config.NOIP_HOSTNAME, dnsIpAddr))
+        msg = "{}: {} IP address of {} is: {}".format(curTime, 'DNS' if DNS_RESOLVER else 'Host', config.NOIP_HOSTNAME, dnsIpAddr)
+        print(msg)
         print("{}: Public IP address (ISP) of {} is: {}".format(curTime, config.NOIP_HOSTNAME, routerIpAddr))
         if routerIpAddr in dnsIpAddr:
             print('%s: No update is required.' % curTime)
