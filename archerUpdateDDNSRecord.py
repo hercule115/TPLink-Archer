@@ -14,6 +14,8 @@ import requests
 import argparse
 import getpass
 
+import initConfig # config.py generator
+
 try:
     import dns.resolver
     DNS_RESOLVER = True
@@ -214,7 +216,7 @@ def parse_argv():
                         help="print debug messages (to stdout)")
     parser.add_argument('-f', '--file',
                         dest='logFile',
-                        const=config.LOGFILE,
+                        const='', #config.LOGFILE,
                         default=None,
                         action='store',
                         nargs='?',
@@ -269,16 +271,16 @@ def parse_argv():
 #
 def importArcher(moduleDirPath):
     archerModulePath = os.path.join(moduleDirPath, 'archer.py')
-    tplas = import_module_by_path(archerModulePath)
+    tplas = importModuleByPath(archerModulePath)
     globals()['tplas'] = tplas
 
 #
 # If config.py does not exist or is incomplete, initialize it
 #
-def initConfig(moduleDirPath):
+def o_initConfig(moduleDirPath):
     configModulePath = os.path.join(moduleDirPath, 'config.py')
     try:
-        #config = import_module_by_path(configModulePath)
+        #config = importModuleByPath(configModulePath)
         import config
         globals()['config'] = config
     except:
@@ -327,7 +329,7 @@ def initConfig(moduleDirPath):
         print('config.py initialization has failed. Exiting')
         sys.exit(1)
 
-def import_module_by_path(path):
+def importModuleByPath(path):
     name = os.path.splitext(os.path.basename(path))[0]
     if sys.version_info[0] == 2:
         import imp
@@ -341,16 +343,24 @@ def import_module_by_path(path):
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         return mod
-        
+
+#
+# Import given module.
+#
+def importModule(moduleDirPath, moduleName, name):
+    modulePath = os.path.join(moduleDirPath, moduleName)
+    mod = importModuleByPath(modulePath)
+    globals()[name] = mod
+    
 ####
 def main():
     print('%s: Running at: %s' % (sys.argv[0], time.strftime('%m/%d/%y %H:%M:%S', time.localtime())))
     
     # Absolute pathname of directory containing this module
-    moduleDirPath = os.path.dirname(module_path(getIpAddressFromRouter))
+    #moduleDirPath = os.path.dirname(module_path(getIpAddressFromRouter))
     
     # Initialize/Import config.py
-    initConfig(moduleDirPath)
+    #initConfig(moduleDirPath)
 
     # Parse arguments 
     args = parse_argv()
@@ -362,7 +372,7 @@ def main():
     setConfigParams(args)
         
     # config parameters are updated. Import Archer module
-    importArcher(moduleDirPath)
+    #importArcher(moduleDirPath)
 
     if args.dumpInformation:
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
@@ -433,8 +443,35 @@ def main():
         sys.exit(1)
 
     # Confirmation...
-    dnsIpAddr = getHostByName(args)
+    dnsIpAddr = getHostByName(config.NOIP_HOSTNAME)
         
 # Entry point    
 if __name__ == "__main__":
+
+    # Absolute pathname of directory containing this module
+    moduleDirPath = os.path.dirname(module_path(main))
+
+    # Create config.py with Mandatory/Optional fields 
+    mandatoryFields = [('b','DEBUG'),
+                       ('s','NOIP_HOSTNAME'),
+                       ('s','NOIP_USERNAME'),
+                       ('s','NOIP_PASSWORD')]
+    
+    optionalFields  = [('s','ROUTER_HOSTNAME'),
+                       ('s','ROUTER_USERNAME'),
+                       ('p','ROUTER_PASSWORD'),
+                       ('s','LOGFILE')]
+
+    initConfig.initConfig(moduleDirPath, mandatoryFields, optionalFields)
+
+    # Import generated module
+    try:
+        import config
+    except:
+        print('config.py initialization has failed. Exiting')
+        sys.exit(1)
+
+    # config parameters updated. Import Archer module
+    importModule(moduleDirPath, 'archer.py', 'tplas')
+
     main()
