@@ -97,6 +97,24 @@ class MyAES:
         iv   = temp[1].split("=")[1]
         myprint('key=',key,'iv=',iv)
         self.setKey(key, iv)
+
+    # Main entry points
+    def encrypt(self, plainText):
+        op = dict()
+        op['iv'] = self._ivUtf8
+        myprint(op)
+        
+        v = self._cryptoAESencrypt(plainText, self._keyUtf8, self._ivUtf8, op)
+        return self._toString(v)
+
+    def decrypt(self, encrypted):
+        op = dict()
+        op['iv'] = self._ivUtf8
+        myprint(op)
+
+        v = self._cryptoAESdecrypt(encrypted, self._keyUtf8, self._ivUtf8, op)
+        w = self._toString(v)
+        return w
         
     class MyDecryptor:
         def __init__(self, parent, key, iv):
@@ -269,7 +287,7 @@ class MyAES:
             self._parent._reset(self)
 
         #VM: 1138
-        def _processBlock(self, t, r): # this=_cipher, t=words, r=int
+        def _processBlock(self, t, r):
             e = self.this
             i = e['blockSize']
             myprint(e)
@@ -279,7 +297,7 @@ class MyAES:
             myprint('self.this[_prevBlock]=',self.this['_prevBlock'])
             
         #VM: 1701
-        def _encryptBlock(self, t, r): # this=_cipher
+        def _encryptBlock(self, t, r):
             myprint(t, r)
             p = self._parent
             p.doCryptBlock(self.this, t, r, self.this['_keySchedule'], p._l, p._u, p._d, p._p, p._h)
@@ -390,31 +408,24 @@ class MyAES:
                     if s < 0:
                         s = s + 2**32 # convert signed to unsigned
                     s0 = toSigned32(s << 8 | s >> 24)
+                    # Two complement
                     s0 = int(bin(s0 & 0b11111111111111111111111111111111),2)
                         
-                    #myprint('e1',o,'s=',s,'s0=',s0) #94307481
                     x = s0 >> 24
                     s = toSigned32(h[x] << 24)
-                    #myprint('e11',o,x,s)
 
                     x = s0 >> 16 & 255
                     s |= toSigned32(h[x] << 16)
-                    #myprint('e111',o,x,toSigned32(h[x] << 16),s)
 
                     x = s0 >> 8 & 255
                     s |= toSigned32(h[x] << 8)
-                    #myprint('e1111',o,x,toSigned32(h[x] << 8),s)
 
                     x = 255 & s0
                     s |= h[x]
-                    #myprint('e2',o,x,h[x],s)
                     
                     s ^= toSigned32(w[int(o / e) | 0] << 24)
-                    #myprint('e3',o,s)
                 n[o] = n[o - e] ^ s
                 n['length'] += 1
-                #myprint('f',o,n) 
-                    
             o += 1
 
         this['_keySchedule'] = n
@@ -441,16 +452,12 @@ class MyAES:
             else:
                 s0 = s
                 s = int(bin(s & 0b11111111111111111111111111111111),2)
-                #myprint('aa',s0,s,s0>>24,s>>24)
                 aa = v[h[s >> 24]]
-                #myprint('aa',s>>24,h[s>>24],v[h[s >> 24]])
                 bb = _[h[s >> 16 & 255]]
                 cc = y[h[s >> 8 & 255]]
                 dd = g[h[255 & s]]
                 a[c] = aa ^ bb ^ cc ^ dd
-                #myprint(s,aa,bb,cc,dd,a[c])
             a['length'] += 1
-            #myprint(c,o,s,a)
             c += 1
 
         # Copy a[] to _invKeySchedule[]
@@ -471,7 +478,7 @@ class MyAES:
         return t
 
     #VM:1183 
-    def _doFinalize(self, this): # this = _cipher
+    def _doFinalize(self, this):
         t = this['cfg']['padding']
         if this['_xformMode'] == self.ENC_XFORM_MODE:
             t['pad'](this['_data'], this['blockSize'])
@@ -484,7 +491,7 @@ class MyAES:
         return r
             
     #VM:1073
-    def _finalize(self, this, t): # this= xcryptor.this
+    def _finalize(self, this, t):
         myprint('t=', t)
         myprint('type of t=',type(t))
         if 'str' in str(type(t)):	# Encrypt mode
@@ -499,7 +506,6 @@ class MyAES:
         
     #VM:1232
     def _cryptoAESencrypt(self, plainText, keyUtf8, ivUtf8, op):
-        #myprint(plainText)
         myprint('keyUtf8=',keyUtf8)
         myprint('ivUtf8=',ivUtf8)
 
@@ -535,24 +541,6 @@ class MyAES:
         ret['blockSize']  = blockSize
         ret['formatter']  = formatter
         return ret
-        
-    # Main entry points
-    def encrypt(self, plainText):
-        op = dict()
-        op['iv'] = self._ivUtf8
-        myprint(op)
-        
-        v = self._cryptoAESencrypt(plainText, self._keyUtf8, self._ivUtf8, op)
-        return self._toString(v)
-
-    def decrypt(self, encrypted):
-        op = dict()
-        op['iv'] = self._ivUtf8
-        myprint(op)
-
-        v = self._cryptoAESdecrypt(encrypted, self._keyUtf8, self._ivUtf8, op)
-        w = self._toString(v)
-        return w
     
     def _cryptoAESdecrypt(self, encrypted, keyUtf8, ivUtf8, op):
         myprint('keyUtf8=',keyUtf8)
@@ -635,7 +623,7 @@ class MyAES:
         t['sigBytes'] -= r
         myprint('r=',r,'t=',t)
         
-    def _process(self, this, t): # this=_cipher
+    def _process(self, this, t):
         r = this['_data']
         e = r['words']
         i = r['sigBytes']
@@ -665,7 +653,7 @@ class MyAES:
         myprint('ret=',ret)
         return ret
             
-    def doCryptBlock(self, this, t, r, e, i, n, o, s, a): # this = _cipher
+    def doCryptBlock(self, this, t, r, e, i, n, o, s, a):
         myprint(t)
 
         c = this['_nRounds']
@@ -684,7 +672,6 @@ class MyAES:
             v = i[h >> 24] ^ n[f >> 16 & 255] ^ o[l >> 8 & 255] ^ s[255 & u] ^ e[d]
             v = toSigned32(v)
             d += 1
-            #myprint('v=',v)
             
             if f < 0:
                 f = f + 2**32 # convert signed to unsigned
@@ -709,10 +696,8 @@ class MyAES:
             l = y
             u = g
 
-            #myprint(p,h,f,l,u)
             p +=1
 
-        #myprint(p,h,f,l,u)            
         if h < 0:
             h = h + 2**32 # convert signed to unsigned
         v = (a[h >> 24] << 24 | a[f >> 16 & 255] << 16 | a[l >> 8 & 255] << 8 | a[255 & u]) ^ e[d]
@@ -743,7 +728,7 @@ class MyAES:
         t[r + 3] = g
         myprint('t=',t)
             
-    def _func_o(self, this, t, r, e): # this=_cipher, t=words, r=int
+    def _func_o(self, this, t, r, e):
         myprint(this)
         i = this['pthis']['_iv']['words'] if this['pthis']['_iv'] else None
         myprint('i=',i)
@@ -759,7 +744,6 @@ class MyAES:
         myprint('n=',n)
         o = 0
         while o < e:
-            #myprint(t[r + o],n[o])
             t[r + o] ^= n[o]
             o += 1
             
@@ -770,7 +754,7 @@ class MyAES:
         sys.exit(1)
         
     #VM: 49
-    def _concat(self, this, t): #this=_data
+    def _concat(self, this, t):
         r = this['words']
         e = t['words']
         i = this['sigBytes']
@@ -803,14 +787,14 @@ class MyAES:
         myprint('this=',this)
         return this
 
-    def _parse(self, this, t, r):  # this = pthis, t = encryptedText, r = self._this['i']['format']
+    def _parse(self, this, t, r):
         myprint('t=',t)
         if 'str' in str(type(t)):
             return r['parse'](t, this)
         else:
             return t
 
-    def _b64Stringify(self, this, t): # this = b64enc
+    def _b64Stringify(self, this, t): 
         r = t['words']
         e = t['sigBytes']
         i = this['_map']
@@ -827,11 +811,9 @@ class MyAES:
                 s |= r[o + 2 >> 2] >> 24 - (o + 2) % 4 * 8 & 255
             a = 0
             while a < 4 and o + .75 * a < e:
-                #myprint('2:',a,e,s,o,s >> 6 * (3 - a) & 63,n,o + .75 * a)
                 n.append(i[s >> 6 * (3 - a) & 63])
                 a += 1
             o += 3
-            #myprint(len(n),n)
         c = i[64]
         if c:
             while len(n) % 4:
@@ -917,7 +899,6 @@ def utf8Parse(t):
     d = dict()
     d['words'] = e
     d['sigBytes'] = r
-    #myprint(d)
     return d
 
 ####
