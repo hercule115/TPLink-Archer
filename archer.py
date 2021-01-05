@@ -25,8 +25,6 @@ except:
     print('config.py does not exist. Importing generator')
     import initConfig	# Check / Update / Create config.py module
     
-#import config	
-
 # My private AES crypto
 import MyAESCrypto
 
@@ -956,18 +954,25 @@ class Archer:
         self._configInfoCgiGdprRqst[11] = "5" + "\r\n" + "[ONEMESH_DEVICE#0,0,0,0,0,0#0,0,0,0,0,0]0,0" + "\r\n"
 
         #...
-        
-        self._configInfoCgiGdprRqst[12] = "1&1&1" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]0,0" + "\r\n" + "[LTE_WAN_CFG#2,1,0,0,0,0#0,0,0,0,0,0]1,3" + "\r\n" + "dataSwitchStatus" + "\r\n" + "networkPreferredMode" + "\r\n" + "roamingEnabled" + "\r\n" + "[WAN_LTE_INTF_CFG#2,0,0,0,0,0#0,0,0,0,0,0]2,1" + "\r\n" + "dataLimit" + "\r\n"
+        self._configInfoCgiGdprRqst[12] = "1&5&5&5&1&5&5&1&5" + "\r\n" + "[L3_FORWARDING#0,0,0,0,0,0#0,0,0,0,0,0]0,1" + "\r\n" + "__ifAliasName" + "\r\n" + "[WAN_IP_CONN#0,0,0,0,0,0#0,0,0,0,0,0]1,3" + "\r\n" + "Enable" + "\r\n" + "Name" + "\r\n" + "ConnectionType" + "\r\n" + "[WAN_PPP_CONN#0,0,0,0,0,0#0,0,0,0,0,0]2,2" + "\r\n" + "Enable" + "\r\n" + "Name" + "\r\n" + "[WAN_COMMON_INTF_CFG#0,0,0,0,0,0#0,0,0,0,0,0]3,1" + "\r\n" + "WANAccessType" + "\r\n" + "[L3_IP6_FORWARDING#0,0,0,0,0,0#0,0,0,0,0,0]4,1" + "\r\n" + "__ifAliasName" + "\r\n" + "[WAN_PPTP_CONN#0,0,0,0,0,0#0,0,0,0,0,0]5,2" + "\r\n" + "Enable" + "\r\n" + "Name" + "\r\n" + "[WAN_L2TP_CONN#0,0,0,0,0,0#0,0,0,0,0,0]6,2" + "\r\n" + "Enable" + "\r\n" + "Name" + "\r\n" + "[SYS_MODE#0,0,0,0,0,0#0,0,0,0,0,0]7,2" + "\r\n" + "Mode" + "\r\n" + "lteBackupEnable" + "\r\n" + "[WAN_LTE_LINK_CFG#0,0,0,0,0,0#0,0,0,0,0,0]8,0" + "\r\n"
 
-        self._configInfoCgiGdprRqst[13] = "1&1&1&1&1" + "\r\n" + "[WAN_COMMON_INTF_CFG#2,0,0,0,0,0#0,0,0,0,0,0]0,0" + "\r\n" + "[WAN_LTE_INTF_CFG#2,0,0,0,0,0#0,0,0,0,0,0]1,8" + "\r\n" + "dataLimit" + "\r\n" + "enablePaymentDay" + "\r\n" + "curStatistics" + "\r\n" + "totalStatistics" + "\r\n" + "enableDataLimit" + "\r\n" + "limitation" + "\r\n" + "curRxSpeed" + "\r\n" + "curTxSpeed" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]2,0" + "\r\n" + "[LTE_PROF_STAT#2,1,0,0,0,0#0,0,0,0,0,0]3,0" + "\r\n" + "[LTE_NET_STATUS#2,1,0,0,0,0#0,0,0,0,0,0]4,0" + "\r\n"
+
+        self._configInfoCgiGdprRqst[13] = "1&1" + "\r\n" + "[LTE_NET_STATUS#2,1,0,0,0,0#0,0,0,0,0,0]0,0" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]1,0" + "\r\n"
 
         self._configInfoCgiGdprRqst[14] = "1" + "\r\n" + "[WAN_IP_CONN#2,1,1,0,0,0#0,0,0,0,0,0]0,0" + "\r\n"
+        #...
+        
+        self._configInfoCgiGdprRqst[15] = "1&1&1" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]0,0" + "\r\n" + "[LTE_WAN_CFG#2,1,0,0,0,0#0,0,0,0,0,0]1,3" + "\r\n" + "dataSwitchStatus" + "\r\n" + "networkPreferredMode" + "\r\n" + "roamingEnabled" + "\r\n" + "[WAN_LTE_INTF_CFG#2,0,0,0,0,0#0,0,0,0,0,0]2,1" + "\r\n" + "dataLimit" + "\r\n"
 
-        self._configInfoCgiGdprRqst[15] = "1&1" + "\r\n" + "[DIAG_TOOL#0,0,0,0,0,0#0,0,0,0,0,0]0,1" + "\r\n" + "LastResult" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]1,0" + "\r\n"
+        self._configInfoCgiGdprRqst[16] = "1&1&1&1&1" + "\r\n" + "[WAN_COMMON_INTF_CFG#2,0,0,0,0,0#0,0,0,0,0,0]0,0" + "\r\n" + "[WAN_LTE_INTF_CFG#2,0,0,0,0,0#0,0,0,0,0,0]1,8" + "\r\n" + "dataLimit" + "\r\n" + "enablePaymentDay" + "\r\n" + "curStatistics" + "\r\n" + "totalStatistics" + "\r\n" + "enableDataLimit" + "\r\n" + "limitation" + "\r\n" + "curRxSpeed" + "\r\n" + "curTxSpeed" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]2,0" + "\r\n" + "[LTE_PROF_STAT#2,1,0,0,0,0#0,0,0,0,0,0]3,0" + "\r\n" + "[LTE_NET_STATUS#2,1,0,0,0,0#0,0,0,0,0,0]4,0" + "\r\n"
 
-        self._configInfoCgiGdprRqst[16] = "7" + "\r\n" + "[ACT_DIAG_STARTDIAG#0,0,0,0,0,0#0,0,0,0,0,0]0,0" + "\r\n"
+        self._configInfoCgiGdprRqst[17] = "1" + "\r\n" + "[WAN_IP_CONN#2,1,1,0,0,0#0,0,0,0,0,0]0,0" + "\r\n"
 
-        self._configInfoCgiGdprRqst[17] = "1&1" + "\r\n" + "[DIAG_TOOL#0,0,0,0,0,0#0,0,0,0,0,0]0,1" + "\r\n" + "LastResult" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]1,0" + "\r\n"
+        self._configInfoCgiGdprRqst[18] = "1&1" + "\r\n" + "[DIAG_TOOL#0,0,0,0,0,0#0,0,0,0,0,0]0,1" + "\r\n" + "LastResult" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]1,0" + "\r\n"
+
+        self._configInfoCgiGdprRqst[19] = "7" + "\r\n" + "[ACT_DIAG_STARTDIAG#0,0,0,0,0,0#0,0,0,0,0,0]0,0" + "\r\n"
+
+        self._configInfoCgiGdprRqst[20] = "1&1" + "\r\n" + "[DIAG_TOOL#0,0,0,0,0,0#0,0,0,0,0,0]0,1" + "\r\n" + "LastResult" + "\r\n" + "[WAN_LTE_LINK_CFG#2,1,0,0,0,0#0,0,0,0,0,0]1,0" + "\r\n"
 
         #Scripts used to logout from router
         self._logoutCgiGdprRqst = dict()
@@ -1660,21 +1665,29 @@ if __name__ == "__main__":
     # Absolute pathname of directory containing this module
     moduleDirPath = os.path.dirname(module_path(main))
 
-    # Create config.py with Mandatory/Optional fields 
-    mandatoryFields = [('b','DEBUG')]
-    optionalFields  = [('s','ROUTER_USERNAME'),
-                       ('p','ROUTER_PASSWORD'),
-                       ('s','ROUTER_HOSTNAME'),
-                       ('s','LOGFILE')]
-                       
-    initConfig.initConfig(moduleDirPath, mandatoryFields, optionalFields)
-
-    # Import generated module
+    # Check if config module is already imported. If not, build it
     try:
-        import config
+        x = globals()['config']
+        haveConfig = True
     except:
-        print('config.py initialization has failed. Exiting')
-        sys.exit(1)
+        haveConfig = False
+
+    if not haveConfig:
+        # Create config.py with Mandatory/Optional fields 
+        mandatoryFields = [('b','DEBUG')]
+        optionalFields  = [('s','ROUTER_USERNAME'),
+                           ('p','ROUTER_PASSWORD'),
+                           ('s','ROUTER_HOSTNAME'),
+                           ('s','LOGFILE')]
+                       
+        initConfig.initConfig(moduleDirPath, mandatoryFields, optionalFields)
+
+        # Import generated module
+        try:
+            import config
+        except:
+            print('config.py initialization has failed. Exiting')
+            sys.exit(1)
 
     # config parameters updated. Import MyAESCrypto module
     importModule(moduleDirPath, 'MyAESCrypto.py', 'MyAESCrypto')
