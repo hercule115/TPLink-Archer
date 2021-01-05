@@ -3,10 +3,10 @@
 import builtins as __builtin__
 import inspect
 import os
-import socket
 import sys
 import time
-import requests
+#import socket
+#import requests
 import argparse
 import getpass
 
