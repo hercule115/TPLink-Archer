@@ -4,17 +4,6 @@
 # It uses the Selenium package to get the IP Address (public) of the router
 # and the noipy package to update the DDNS record at No-IP
 
-LOCALTEST = False #True
-
-if LOCALTEST:
-    ee = "010001"
-    nn = "DFBBDEAD2BC700A78318BDBB7CE5EE22E2199CFF32EFAF4A067B2474817B00AE5A589A8EB7D194EE7321B3147994E871804A1250C91463196F992446A66640AB"
-    seq = "643618060"
-    aesIv  = 1606831300864752
-    aesKey = 1606831300864655
-
-    # hash: "03d3a147236e224ad42b1945cc8323e1"
-
 import builtins as __builtin__
 import inspect
 import os
@@ -30,16 +19,22 @@ import requests
 from bs4 import BeautifulSoup
 import hashlib
 
-import config	# Shared global config variables (DEBUG,...)
+try:
+    import config	# Shared global config variables (DEBUG,...)
+except:
+    print('config.py does not exist. Importing generator')
+    import initConfig	# Check / Update / Create config.py module
+    
+#import config	
 
 # My private AES crypto
 import MyAESCrypto
 
-DEFAULT_HOSTNAME = '192.168.1.1'
-HOSTNAME = ''
-USERNAME = 'admin'
-PASSWORD = ''
-LOGFILE = ''
+#DEFAULT_HOSTNAME = '192.168.1.1'
+#HOSTNAME = ''
+#USERNAME = 'admin'
+#PASSWORD = ''
+#LOGFILE = ''
 
 class MyXcryptor():
     def __init__(self, nn, ee, seq):
@@ -1007,8 +1002,8 @@ class Archer:
         myprint('response headers:',r.headers)
         if r.status_code != 200:
             return
-        #dumpToFile('%s.html' % self._hostName, r.text)
         #myprint('session cookies:',self._session.cookies)
+        #dumpToFile('%s-%d.html' % (self._hostName,doParse), r.text)
         if doParse:
             soup = BeautifulSoup(r.text, 'html.parser')
             #myprint('head=',soup.head)
@@ -1143,15 +1138,6 @@ class Archer:
         self.encryptor.genAESKey()
         n = self.encryptor.AESEncrypt(self._name + "\n" + self._password, 1)
 
-        if config.LOCALTEST:
-            myprint('n=',n)
-            sign = "757a9b1bdee5fb31b6cc7ee8ca2f73be8678202f1bd3927ffa795fcc18edb0263a51c37ee6effa223bc737c84126d4c054d9a16d1a5070f5ce533060ab36cce404029f2351e235275e990015f8844eb0fa7d8ebe3bb24de8f81ba26ad1ddac0aaadbb32f86f1930a255458233908048a88c0ab897c9d7e9564c56e37664b8e3c"
-            data = 'ZFS0qzA7+rPxgJGDkCamjg=='
-            if n['sign'] == sign and n['data'] == data:
-                myprint(" TEST OK OK OK OK OK OK OK OK OK OK")
-            else:
-                myprint("TEST KO KO KO KO KO KO KO KO KO KO")
-
         # RSA Encrypt password (not used)
         #n = self._rsaEncrypt(b64enc(self._password), self.nn, self.ee)
         #e = self._rsaEncrypt(self._name, self.nn, self.ee) #: rsaEncrypt("admin", $.nn, $.ee))
@@ -1176,82 +1162,6 @@ class Archer:
         myprint(info)
         
     def getConfig(self):
-        # assert(self._hostName)
-        # assert(self._session)
-        # assert(self._name)
-        # assert(self._password)
-
-        # myprint("*** Connecting to:", self._hostName, " ***")
-        
-        # self.initialPage(0)
-        # self.getParm()
-        
-        # # We got self.nn, self.ee, self.seq from previous request,
-        # # Now, create Encryptor instance
-        # myprint('Creating encryptor')
-        # self.initEncryptor()
-
-        # # Mimic behavior
-        # self.loadinggif()
-
-        # isBusy = self.getBusy()
-        # if isBusy:
-        #     myprint('*** WARNING: isBusy is set ***')
-        
-        # # Connect with credentials
-        # self.loginSubmit()
-        
-        # # Reload main page and parse output to get the token
-        # self.initialPage(1)
-
-        # # Load various scripts one by one
-        # for script in (
-        #         ('css', 'main.css'),
-        #         ('css', 'tpTable.css'),
-        #         ('css', 'pure-min.css'),
-        #         ('css', 'jquery.tp.min.css'),
-        #         ('css', 'simple-slider.css'),
-        #         ('js',  'jquery-1.8.3.min.js'),
-        #         ('js',  'oid_str.js'),
-        #         ('locale/en_US', 'str.js'),
-        #         ('locale/en_US', 'help.js'),
-        #         ('locale/en_US', 'array.js'),
-        #         ('locale/en_US', 'err.js'),
-        #         ('locale/en_US', 'lan.css'),
-        #         ('js',  'proxy.js'),
-        #         ('js',  'encrypt.js'),
-        #         ('js',  'lib.js'),
-        #         ('js',  'wireless.js'),
-        #         ('js',  'keycode.js'),
-        #         ('js',  'simple-slider.js'),
-        #         ('js',  'corner.js'),
-        #         ('js',  'jquery.tp.min.js'),
-        #         ('js',  'excanvas.js'),
-        #         ('js',  'Chart.js'),
-        #         ('js',  'su.js'),
-        #         ('js',  'isp.js'),
-        #         ('locale', 'language.js', '_=%d' % int(time.time() * 1e3)),
-        #         ('locale', 'locale.js', '_=%d' % int(time.time() * 1e3)),
-        #         ('js', 'cryptoJS.min.js', '_=%d' % int(time.time() * 1e3)),
-        #         ('js', 'tpEncrypt.js', '_=%d' % int(time.time() * 1e3))
-        # ):
-        #     #self.getScript(script)
-        #     myprint('Skipping download:', script)
-
-        # # Load various images one by one
-        # for img in (
-        #         ('img', 'globalLoading.gif'),
-        #         ('img', 'icons.png')
-        # ):
-        #     #self.getImage(img)
-        #     myprint('Skipping download:', img)
-                
-        # #self.getBusy()
-
-        # # Re-read parameters using a GET
-        # qstring = "_=%d" % int(time.time() * 1e3)
-        # self.getParm(qstring)
-
         # Logon the router, load initial page, create encryptor...
         self._baseLogin()
         
@@ -1380,7 +1290,6 @@ class Archer:
 
     # Parse getParm() response. Initialize nn,ee,seq variables used by RSA encryptor
     def _parseParm(self, s):
-        global LOCALTEST
         global ee, nn, seq
 
         #myprint('Parsing: %s' % s)
@@ -1395,13 +1304,6 @@ class Archer:
         if info:
             myprint('Current values:', info)
             
-        if LOCALTEST:
-            myprint('WARNING: Using hardcoded values')
-            self.nn = nn
-            self.ee = ee
-            self.seq = seq
-            return 0
-        
         vars = s.split(';')
         if len(vars) < 3:
             myprint('Invalid getParm() response %s' % s)
@@ -1626,20 +1528,20 @@ def parse_argv():
                         help="print debug messages (to stdout)")
     parser.add_argument('-f', '--file',
                         dest='logFile',
-                        const=LOGFILE,
+                        const='',
                         default=None,
                         action='store',
                         nargs='?',
                         metavar = 'FILE',
                         help="write debug messages to FILE (default to <hostname>-debug.txt)")
-    parser.add_argument('--host',
+    parser.add_argument('-r', '--router',
                         dest='hostName',
                         action='store',
-                        nargs='?',
-                        help="TP-Link Archer router IP address/name (default to %s)" % DEFAULT_HOSTNAME)
+                        #nargs='?',
+                        help="TP-Link Archer router IP address/name (default to %s)" % config.ROUTER_HOSTNAME)
     parser.add_argument('-u', '--user',
                         dest='userName',
-                        help="Username to use for login (default to %s)" % (USERNAME))
+                        help="Username to use for login (default to %s)" % (config.ROUTER_USERNAME))
     parser.add_argument('-p', '--password',
                         dest='password',
                         help="Password to use for login")
@@ -1650,9 +1552,31 @@ def parse_argv():
     return args
 
 ####
-def main():
-    global USERNAME, PASSWORD
+def import_module_by_path(path):
+    name = os.path.splitext(os.path.basename(path))[0]
+    if sys.version_info[0] == 2:
+        import imp
+        return imp.load_source(name, path)
+    elif sys.version_info[:2] <= (3, 4):
+        from importlib.machinery import SourceFileLoader
+        return SourceFileLoader(name, path).load_module()
+    else:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(name, path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
 
+#
+# Import Archer module. Must be called *after* parsing arguments
+#
+def importModule(moduleDirPath, moduleName, name):
+    modulePath = os.path.join(moduleDirPath, moduleName)
+    mod = import_module_by_path(modulePath)
+    globals()[name] = mod
+
+####
+def main():
     args = parse_argv()    
 
     if args.version:
@@ -1662,45 +1586,46 @@ def main():
     if args.debug:
         config.DEBUG = True
 
+    #if args.logFile:
+    #    config.LOGFILE = args.logFile
+        
     with requests.session() as session:
         if args.hostName:
-            HOSTNAME = args.hostName
-        else:
-            HOSTNAME = DEFAULT_HOSTNAME
+            config.ROUTER_HOSTNAME = args.hostName
             
         if args.userName:
-            USERNAME = args.userName
-        if not USERNAME:
+            config.ROUTER_USERNAME = args.userName
+            
+        if not config.ROUTER_USERNAME:
             userName = input('Username <Default=admin>:' )
             if not userName:
-                userName = 'admin'
-            USERNAME = userName
+                config.ROUTER_USERNAME = 'admin'
 
         if args.password:
-            PASSWORD = args.password
-        if not PASSWORD:
+            config.ROUTER_PASSWORD = args.password
+        if not config.ROUTER_PASSWORD:
             password = getpass.getpass()
             if not password:
                 myprint('Invalid empty password')
                 sys.exit(1)
-            PASSWORD = password
+            config.ROUTER_PASSWORD = password
 
         if args.logFile == None:
             #print('Using stdout')
             pass
         else:
             if args.logFile == '':
-                LOGFILE = "%s-debug.txt" % HOSTNAME
+                config.LOGFILE = "%s-debug.txt" % config.ROUTER_HOSTNAME
             else:
-                LOGFILE = args.logFile
-            print('Using log file: %s' % LOGFILE)
+                config.LOGFILE = args.logFile
+            print('Using log file: %s' % config.LOGFILE)
             try:
-                sys.stdout = open(LOGFILE, "w")
+                sys.stdout = open(config.LOGFILE, "w")
             except:
                 print('Cannot create log file')
 
         # Create instance of router at hostName, connect with given credentials
-        archer = Archer(HOSTNAME, USERNAME, PASSWORD, session)
+        archer = Archer(config.ROUTER_HOSTNAME, config.ROUTER_USERNAME, config.ROUTER_PASSWORD, session)
 
         # Read current configuration
         archerConfig = archer.getConfig()
@@ -1722,7 +1647,7 @@ def main():
         limitation      = int(archerConfig['limitation'])
 
         bssid = archerConfig['BSSID'].split('; ')[0]
-        print('Hostname: %s, Model: %s, BSSID: %s, IPv4: %s' %(HOSTNAME, modelName, bssid, ipv4))
+        print('Hostname: %s, Model: %s, BSSID: %s, IPv4: %s' %(config.ROUTER_HOSTNAME, modelName, bssid, ipv4))
         #print('BSSID: %s' % archerConfig['BSSID'])
         print('Usage: %s / %s' % (humanBytes(totalStatistics), humanBytes(limitation)))
 
@@ -1731,4 +1656,31 @@ def main():
         
 # Entry point    
 if __name__ == "__main__":
+
+    # Absolute pathname of directory containing this module
+    moduleDirPath = os.path.dirname(module_path(main))
+
+    # Create config.py with Mandatory/Optional fields 
+    mandatoryFields = [('b','DEBUG')]
+    optionalFields  = [('s','ROUTER_USERNAME'),
+                       ('p','ROUTER_PASSWORD'),
+                       ('s','ROUTER_HOSTNAME'),
+                       ('s','LOGFILE')]
+                       
+    initConfig.initConfig(moduleDirPath, mandatoryFields, optionalFields)
+
+    # Import generated module
+    try:
+        import config
+    except:
+        print('config.py initialization has failed. Exiting')
+        sys.exit(1)
+
+    # config parameters updated. Import MyAESCrypto module
+    importModule(moduleDirPath, 'MyAESCrypto.py', 'MyAESCrypto')
+
+    #modulenames = set(sys.modules) & set(globals())
+    #allmodules = [sys.modules[name] for name in modulenames]
+    #print(allmodules)
+
     main()
