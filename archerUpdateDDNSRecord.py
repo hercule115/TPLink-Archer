@@ -64,7 +64,13 @@ def setConfigParams(args):
     print('TP-Link Archer Router Connection Parameters:')
     print('Router Hostname/Address: %s' % config.ROUTER_HOSTNAME)
     print('Router User Name: %s' % config.ROUTER_USERNAME)
-    print('Router User Password: %s' % config.ROUTER_PASSWORD)
+    print('Router User Password: %s' % masked(config.ROUTER_PASSWORD, 3))
+
+# Leave the last 'l' characters of 'text' unmasked
+def masked(text, l):
+    nl=-(l)
+    masked = text[nl:].rjust(len(text), "#")
+    return masked
 
 def rebootRouter(args):
     with requests.session() as session:
