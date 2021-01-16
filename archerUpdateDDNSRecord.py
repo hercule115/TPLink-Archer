@@ -186,8 +186,8 @@ def cleanLog(logDir):
     dirs.sort(key=lambda x: os.path.getmtime(x))
     print('Logs to clean:',dirs[:-1])	# Skip last/current log directory
     for d in dirs[:-1]:
-        #shutil.rmtree(d, ignore_errors=True)
-        print(d)
+        shutil.rmtree(d, ignore_errors=True)
+        print('Deleting:',d)
 
 def module_path(local_function):
     ''' returns the module path without the use of __file__.  
@@ -403,7 +403,24 @@ def main():
     curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
     msg = "{}: {} IP address of {} is: {}".format(curTime, 'DNS' if DNS_RESOLVER else 'Host', config.NOIP_HOSTNAME, dnsIpAddr)
     print(msg)
-        
+
+    if config.NOIP_OTHER_HOSTS:
+        otherHosts = config.NOIP_OTHER_HOSTS.split(';')
+        for host in otherHosts:
+            print('Updating host %s with IP %s' % (host,routerIpAddr))
+            noip_args = Namespace(config   = '%s' % (os.path.expanduser("~")),
+                                  provider = 'noip',
+                                  hostname = '%s' % host,
+                                  ip       = '%s' % routerIpAddr,
+                                  usertoken= '%s' % config.NOIP_USERNAME,
+                                  password = '%s' % config.NOIP_PASSWORD,
+                                  store    = False,
+                                  url      = None)
+            r = updateDDNSRecord(noip_args)
+            if r:
+                print('%sFailed to update DDNS Record at No-Ip (%d)%s' % (color.RED,r,color.END))
+                sys.exit(1)
+            
 # Entry point    
 if __name__ == "__main__":
 
@@ -419,6 +436,7 @@ if __name__ == "__main__":
     optionalFields  = [('s','ROUTER_HOSTNAME'),
                        ('s','ROUTER_USERNAME'),
                        ('p','ROUTER_PASSWORD'),
+                       ('s','NOIP_OTHER_HOSTS'),
                        ('s','LOGFILE')]
 
     initConfig.initConfig(moduleDirPath, mandatoryFields, optionalFields)
