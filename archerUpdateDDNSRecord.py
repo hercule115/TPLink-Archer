@@ -184,7 +184,7 @@ def getHostByName(hostName):
 def cleanLog(logDir):
     dirs = list(filter(os.path.isdir, glob.glob(logDir + "16*")))
     dirs.sort(key=lambda x: os.path.getmtime(x))
-    print('Logs to clean:',dirs[:-1])	# Skip last/current log directory
+    #print('Logs to clean:',dirs[:-1])	# Skip last/current log directory
     for d in dirs[:-1]:
         shutil.rmtree(d, ignore_errors=True)
         print('Deleting:',d)
