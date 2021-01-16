@@ -13,6 +13,8 @@ import time
 import requests
 import argparse
 import getpass
+import shutil
+import glob
 
 import initConfig # config.py generator
 
@@ -179,11 +181,31 @@ def getHostByName(hostName):
     return ipAddress
 
 ####
+def cleanLog(logDir):
+    dirs = list(filter(os.path.isdir, glob.glob(logDir + "16*")))
+    dirs.sort(key=lambda x: os.path.getmtime(x))
+    print('Logs to clean:',dirs[:-1])	# Skip last/current log directory
+    for d in dirs[:-1]:
+        #shutil.rmtree(d, ignore_errors=True)
+        print(d)
+
 def module_path(local_function):
     ''' returns the module path without the use of __file__.  
     Requires a function defined locally in the module.
     from http://stackoverflow.com/questions/729583/getting-file-path-of-imported-module'''
     return os.path.abspath(inspect.getsourcefile(local_function))
+
+class color:
+    PURPLE    = '\033[95m'
+    CYAN      = '\033[96m'
+    DARKCYAN  = '\033[36m'
+    BLUE      = '\033[94m'
+    GREEN     = '\033[92m'
+    YELLOW    = '\033[93m'
+    RED       = '\033[91m'
+    BOLD      = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END       = '\033[0m'
 
 def myprint(*args, **kwargs):
     """My custom print() function."""
@@ -191,18 +213,6 @@ def myprint(*args, **kwargs):
     # is probably a bad idea.
     # Instead consider testing if custom argument keywords
     # are present in kwargs
-
-    class color:
-        PURPLE    = '\033[95m'
-        CYAN      = '\033[96m'
-        DARKCYAN  = '\033[36m'
-        BLUE      = '\033[94m'
-        GREEN     = '\033[92m'
-        YELLOW    = '\033[93m'
-        RED       = '\033[91m'
-        BOLD      = '\033[1m'
-        UNDERLINE = '\033[4m'
-        END       = '\033[0m'
 
     if config.DEBUG:
         __builtin__.print('%s%s()%s:' % (color.BOLD, inspect.stack()[1][3], color.END), *args, **kwargs)
@@ -247,6 +257,11 @@ def parse_argv():
                         required=True,
                         help="Password for login on Archer router")
     # Possible Actions
+    parser.add_argument("-c", "--clean",
+                        action="store_true",
+                        dest="cleanLogs",
+                        default=False,
+                        help="Clean old Logfiles and exit")
     parser.add_argument("-i", "--information",
                         action="store_true",
                         dest="dumpInformation",
@@ -297,16 +312,22 @@ def importModule(moduleDirPath, moduleName, name):
     
 ####
 def main():
-    print('%s: Running at: %s' % (sys.argv[0], time.strftime('%m/%d/%y %H:%M:%S', time.localtime())))
+    ME = os.path.basename(sys.argv[0])
+    print('%s: Running at: %s' % (ME, time.strftime('%m/%d/%y %H:%M:%S', time.localtime())))
     # Parse arguments 
     args = parse_argv()
 
     if args.version:
-        print('%s: version 1.1' % sys.argv[0])
+        print('%s: version 1.1' % ME)
         sys.exit(0)
 
     setConfigParams(args)
-        
+
+    # Clean old logfiles
+    cleanLog('/volume1/Logs/synoscheduler/4/')
+    if args.cleanLogs:
+        sys.exit(0)
+    
     if args.dumpInformation:
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
         print('%s: Router Configuration (IP: %s)' % (curTime, config.ROUTER_HOSTNAME))
@@ -351,15 +372,15 @@ def main():
         print(msg)
         print("{}: Public IP address (ISP) of {} is: {}".format(curTime, config.NOIP_HOSTNAME, routerIpAddr))
         if routerIpAddr in dnsIpAddr:
-            print('%s: No update is required.' % curTime)
+            print('%s: %sNo update is required.%s' % (curTime,color.RED,color.END))
         else:
-            print('%s: Skipping update.' % curTime)
+            print('%s: %sSkipping update.%s' % (curTime, color.RED, color.END))
         sys.exit(0)
 
     # If uptodate, exit
     if routerIpAddr in dnsIpAddr:
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
-        print('%s: No update is required. Exiting' % curTime)
+        print('%s: %sNo update is required. Exiting%s' % (curTime,color.RED,color.END))
         sys.exit(0)
 
     # Create a namespace to pass arguments
@@ -373,11 +394,15 @@ def main():
                           url      = None)
     r = updateDDNSRecord(noip_args)
     if r:
-        myprint('Failed to update DDNS Record at No-Ip (%d)' % r)
+        print('%sFailed to update DDNS Record at No-Ip (%d)%s' % (color.RED,r,color.END))
         sys.exit(1)
 
     # Confirmation...
     dnsIpAddr = getHostByName(config.NOIP_HOSTNAME)
+    time.sleep(5)
+    curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
+    msg = "{}: {} IP address of {} is: {}".format(curTime, 'DNS' if DNS_RESOLVER else 'Host', config.NOIP_HOSTNAME, dnsIpAddr)
+    print(msg)
         
 # Entry point    
 if __name__ == "__main__":
