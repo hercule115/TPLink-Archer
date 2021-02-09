@@ -17,6 +17,7 @@ import shutil
 import glob
 
 import initConfig # config.py generator
+import authinfo
 
 try:
     import dns.resolver
@@ -30,6 +31,11 @@ class Namespace:
 
 # Set config parameters according to cmdline arguments
 def setConfigParams(args):
+    if args.verbose:
+        config.VERBOSE = True
+    else:
+        config.VERBOSE = False
+        
     if args.debug:
         config.DEBUG = True
 
@@ -63,10 +69,16 @@ def setConfigParams(args):
         except:
             print('Cannot create log file')
 
-    print('TP-Link Archer Router Connection Parameters:')
-    print('Router Hostname/Address: %s' % config.ROUTER_HOSTNAME)
-    print('Router User Name: %s' % config.ROUTER_USERNAME)
-    print('Router User Password: %s' % masked(config.ROUTER_PASSWORD, 3))
+    if args.webindex:
+        config.WEBSERVER_INDEX_FILE = args.webindex
+    #else:
+    #    config.WEBSERVER_INDEX_FILE = ''
+        
+    if config.VERBOSE:
+        print('TP-Link Archer Router Connection Parameters:')
+        print('Router Hostname/Address: %s' % config.ROUTER_HOSTNAME)
+        print('Router User Name: %s' % config.ROUTER_USERNAME)
+        print('Router User Password: %s' % masked(config.ROUTER_PASSWORD, 3))
 
 # Leave the last 'l' characters of 'text' unmasked
 def masked(text, l):
@@ -74,7 +86,7 @@ def masked(text, l):
     masked = text[nl:].rjust(len(text), "#")
     return masked
 
-def rebootRouter(args):
+def rebootRouter():
     with requests.session() as session:
         # Create instance of router at hostName, connect with given credentials
         archer = tplas.Archer(config.ROUTER_HOSTNAME, config.ROUTER_USERNAME, config.ROUTER_PASSWORD, session)
@@ -142,6 +154,10 @@ def getIpAddressFromRouter(args):
 # Update the DDNS Record at No-Ip with current IP address
 #
 def updateDDNSRecord(args):
+    if not args.hostname or not args.usertoken or not args.password:
+        print('%s: Unable to update DDNS record at No-IP. Missing credentials' % ME)
+        return -1
+    
     exe = sys.executable
     cmd = "%s -m noipy.main --usertoken %s --password %s --provider %s --hostname %s %s" % \
         (exe,
@@ -254,8 +270,12 @@ def parse_argv():
                         help="Username for login on Archer router (default = admin)")
     parser.add_argument('-p', '--password',
                         dest='password',
-                        required=True,
+                        required=False,
                         help="Password for login on Archer router")
+    parser.add_argument("-w", "--web",
+                        dest="webindex",
+                        required=False,
+                        help="Web server index file to update")
     # Possible Actions
     parser.add_argument("-c", "--clean",
                         action="store_true",
@@ -277,7 +297,12 @@ def parse_argv():
                         dest="reboot",
                         default=False,
                         help="Reboot the Archer router and exit")
-    parser.add_argument("-v", "--version",
+    parser.add_argument("-v", "--verbose",
+                        action="store_true",
+                        dest="verbose",
+                        default=False,
+                        help="Verbose mode")
+    parser.add_argument("-V", "--version",
                         action="store_true",
                         dest="version",
                         default=False,
@@ -321,13 +346,45 @@ def main():
         print('%s: version 1.1' % ME)
         sys.exit(0)
 
-    setConfigParams(args)
-
     # Clean old logfiles
-    cleanLog('/volume1/Logs/synoscheduler/4/')
+    if config.VERBOSE:
+        print('%s: Cleaning logs in %s' % (ME, '/volume1/Logs/synoscheduler/3/'))
+    cleanLog('/volume1/Logs/synoscheduler/3/')
     if args.cleanLogs:
         sys.exit(0)
-    
+
+    noip_username, noip_password = authinfo.decodeKey(config.NOIP_AUTH.encode('utf-8'))
+    # If username / paswword have been provided on the command-line, use them
+    try:
+        a = getattr(config, 'NOIP_USERNAME')
+    except:
+        setattr(config, 'NOIP_USERNAME', noip_username)
+        
+    try:
+        a = getattr(config, 'NOIP_PASSWORD')
+    except:
+        setattr(config, 'NOIP_PASSWORD', noip_password)
+
+
+    router_username, router_password = authinfo.decodeKey(config.ROUTER_AUTH.encode('utf-8'))
+    # If username / paswword have been provided on the command-line, use them
+    try:
+        a = getattr(config, 'ROUTER_USERNAME')
+    except:
+        setattr(config, 'ROUTER_USERNAME', router_username)
+        
+    try:
+        a = getattr(config, 'ROUTER_PASSWORD')
+    except:
+        setattr(config, 'ROUTER_PASSWORD', router_password)
+
+    if not config.ROUTER_USERNAME or not config.ROUTER_PASSWORD:
+        print('%s: Missing mandatory fields (username and/or password)' % (ME))
+        sys.exit(1)
+
+    # Set config parameters from CLI args
+    setConfigParams(args)
+
     if args.dumpInformation:
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
         print('%s: Router Configuration (IP: %s)' % (curTime, config.ROUTER_HOSTNAME))
@@ -337,7 +394,7 @@ def main():
     if args.reboot:
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
         print('%s: Rebooting router (IP: %s)...' % (curTime, config.ROUTER_HOSTNAME))
-        rebootRouter(args)
+        rebootRouter()
         sys.exit(0)
 
     # No action specified. Check router public address and update it if out of date
@@ -363,8 +420,23 @@ def main():
     if routerIpAddr == '':
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
         print('%s: Unable to retrieve IPv4 address for router (IP: %s)' % (curTime, config.ROUTER_HOSTNAME))
-        print('You must reboot router')
+        print('Rebooting router')
+        rebootRouter()
         sys.exit(1)
+
+    # Update our webserver index file with IP address
+    wsi = config.WEBSERVER_INDEX_FILE
+    try:
+        indexFile = wsi if wsi else 'index.html'
+        if config.VERBOSE:
+            print('Updating %s' % indexFile)
+        out = open(indexFile, 'w')
+        out.write(routerIpAddr)
+        out.close()
+    except IOError as e:
+        msg = "I/O error: Creating %s: %s" % (indexFile, "({0}): {1}".format(e.errno, e.strerror))
+        print(msg)
+        #sys.exit(1)
 
     if args.checkonly:
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
@@ -380,6 +452,7 @@ def main():
     # If uptodate, exit
     if routerIpAddr in dnsIpAddr:
         curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
+        print('%s: IP Address: %s' % (curTime,routerIpAddr))
         print('%s: %sNo update is required. Exiting%s' % (curTime,color.RED,color.END))
         sys.exit(0)
 
@@ -397,15 +470,16 @@ def main():
         print('%sFailed to update DDNS Record at No-Ip (%d)%s' % (color.RED,r,color.END))
         sys.exit(1)
 
-    # Confirmation...
-    dnsIpAddr = getHostByName(config.NOIP_HOSTNAME)
-    time.sleep(5)
-    curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
-    msg = "{}: {} IP address of {} is: {}".format(curTime, 'DNS' if DNS_RESOLVER else 'Host', config.NOIP_HOSTNAME, dnsIpAddr)
-    print(msg)
 
-    if config.NOIP_OTHER_HOSTS:
-        otherHosts = config.NOIP_OTHER_HOSTS.split(';')
+    # Update host aliases
+    try:
+        noh = getattr(config, "config.NOIP_OTHER_HOSTS")
+        print(noh)
+    except:
+        noh = None
+
+    if noh:
+        otherHosts = noh.split(';')
         for host in otherHosts:
             print('Updating host %s with IP %s' % (host,routerIpAddr))
             noip_args = Namespace(config   = '%s' % (os.path.expanduser("~")),
@@ -428,16 +502,18 @@ if __name__ == "__main__":
     moduleDirPath = os.path.dirname(module_path(main))
 
     # Create config.py with Mandatory/Optional fields 
-    mandatoryFields = [('b','DEBUG'),
+    mandatoryFields = [('b','VERBOSE'),
+                       ('b','DEBUG'),
                        ('s','NOIP_HOSTNAME'),
-                       ('s','NOIP_USERNAME'),
-                       ('s','NOIP_PASSWORD')]
+                       ('a',['NOIP_AUTH', ('s','NOIP_USERNAME'), ('p','NOIP_PASSWORD')]),
+                       ('s','ROUTER_HOSTNAME'),
+                       ('a',['ROUTER_AUTH', ('s','ROUTER_USERNAME'), ('p','ROUTER_PASSWORD')]),
+    ]
     
-    optionalFields  = [('s','ROUTER_HOSTNAME'),
-                       ('s','ROUTER_USERNAME'),
-                       ('p','ROUTER_PASSWORD'),
+    optionalFields  = [('s','WEBSERVER_INDEX_FILE'),
                        ('s','NOIP_OTHER_HOSTS'),
-                       ('s','LOGFILE')]
+                       ('s','LOGFILE'),
+    ]
 
     initConfig.initConfig(moduleDirPath, mandatoryFields, optionalFields)
 
