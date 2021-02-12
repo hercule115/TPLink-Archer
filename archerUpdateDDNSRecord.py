@@ -69,10 +69,8 @@ def setConfigParams(args):
         except:
             print('Cannot create log file')
 
-    if args.webindex:
-        config.WEBSERVER_INDEX_FILE = args.webindex
-    #else:
-    #    config.WEBSERVER_INDEX_FILE = ''
+    if args.ipaddrfile:
+        config.IPADDR_FILE = args.ipaddrfile
         
     if config.VERBOSE:
         print('TP-Link Archer Router Connection Parameters:')
@@ -246,7 +244,7 @@ def parse_argv():
                         dest="debug",
                         default=False,
                         help="print debug messages (to stdout)")
-    parser.add_argument('-f', '--file',
+    parser.add_argument('-f', '--logfile',
                         dest='logFile',
                         const='', #config.LOGFILE,
                         default=None,
@@ -272,10 +270,10 @@ def parse_argv():
                         dest='password',
                         required=False,
                         help="Password for login on Archer router")
-    parser.add_argument("-w", "--web",
-                        dest="webindex",
+    parser.add_argument("--ipfile",
+                        dest="ipaddrfile",
                         required=False,
-                        help="Web server index file to update")
+                        help="Write IP address to file")
     # Possible Actions
     parser.add_argument("-c", "--clean",
                         action="store_true",
@@ -347,9 +345,9 @@ def main():
         sys.exit(0)
 
     # Clean old logfiles
-    if config.VERBOSE:
-        print('%s: Cleaning logs in %s' % (ME, '/volume1/Logs/synoscheduler/3/'))
-    cleanLog('/volume1/Logs/synoscheduler/3/')
+    #if config.VERBOSE:
+    #    print('%s: Cleaning logs in %s' % (ME, '/volume1/Logs/synoscheduler/3/'))
+    #cleanLog('/volume1/Logs/synoscheduler/3/')
     if args.cleanLogs:
         sys.exit(0)
 
@@ -404,7 +402,8 @@ def main():
         try:
             rec = resolveDNS(config.NOIP_HOSTNAME)
         except:
-            print('No DNS Record for %s' % config.NOIP_HOSTNAME)
+            curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
+            print('%s: No DNS Record for %s' % (curTime,config.NOIP_HOSTNAME))
             dnsRecord = ''
         else:
             for item in rec:
@@ -424,17 +423,18 @@ def main():
         rebootRouter()
         sys.exit(1)
 
-    # Update our webserver index file with IP address
-    wsi = config.WEBSERVER_INDEX_FILE
+    # Update file with IP address
+    wsi = config.IPADDR_FILE
     try:
-        indexFile = wsi if wsi else 'index.html'
+        ipAddrFile = wsi if wsi else 'index.html'
         if config.VERBOSE:
-            print('Updating %s' % indexFile)
-        out = open(indexFile, 'w')
+            curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
+            print('%s: Updating file: %s' % (curTime, ipAddrFile))
+        out = open(ipAddrFile, 'w')
         out.write(routerIpAddr)
         out.close()
     except IOError as e:
-        msg = "I/O error: Creating %s: %s" % (indexFile, "({0}): {1}".format(e.errno, e.strerror))
+        msg = "I/O error: Creating %s: %s" % (ipAddrFile, "({0}): {1}".format(e.errno, e.strerror))
         print(msg)
         #sys.exit(1)
 
@@ -470,7 +470,6 @@ def main():
         print('%sFailed to update DDNS Record at No-Ip (%d)%s' % (color.RED,r,color.END))
         sys.exit(1)
 
-
     # Update host aliases
     try:
         noh = getattr(config, "config.NOIP_OTHER_HOSTS")
@@ -481,7 +480,8 @@ def main():
     if noh:
         otherHosts = noh.split(';')
         for host in otherHosts:
-            print('Updating host %s with IP %s' % (host,routerIpAddr))
+            curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
+            print('%s: Updating host %s with IP %s' % (curTime,host,routerIpAddr))
             noip_args = Namespace(config   = '%s' % (os.path.expanduser("~")),
                                   provider = 'noip',
                                   hostname = '%s' % host,
@@ -510,7 +510,7 @@ if __name__ == "__main__":
                        ('a',['ROUTER_AUTH', ('s','ROUTER_USERNAME'), ('p','ROUTER_PASSWORD')]),
     ]
     
-    optionalFields  = [('s','WEBSERVER_INDEX_FILE'),
+    optionalFields  = [('s','IPADDR_FILE'),
                        ('s','NOIP_OTHER_HOSTS'),
                        ('s','LOGFILE'),
     ]
