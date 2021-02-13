@@ -447,6 +447,7 @@ def main():
             print('%s: %sNo update is required.%s' % (curTime,color.RED,color.END))
         else:
             print('%s: %sSkipping update.%s' % (curTime, color.RED, color.END))
+
         sys.exit(0)
 
     # If uptodate, exit
@@ -469,6 +470,14 @@ def main():
     if r:
         print('%sFailed to update DDNS Record at No-Ip (%d)%s' % (color.RED,r,color.END))
         sys.exit(1)
+
+    # Record change in log file
+    chLogFile = os.path.splitext(os.path.abspath(__file__))[0]+'.ipChangeLog'
+    #print(chLogFile)
+    with open(chLogFile, 'a') as logf:
+        curTime = time.strftime('%m/%d/%y %H:%M:%S', time.localtime())
+        msg = "{}: IP address updated. old: {} new: {}\n".format(curTime, dnsIpAddr, routerIpAddr)
+        logf.write(msg)
 
     # Update host aliases
     try:
