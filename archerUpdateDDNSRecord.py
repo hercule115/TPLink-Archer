@@ -182,8 +182,9 @@ def humanBytes(size):
 # Get router IP address from DNS
 #
 def resolveDNS(hostName):
-    resolver = dns.resolver.Resolver(); 
-    answer = resolver.query(hostName , "A")
+    #resolver = dns.resolver.Resolver(); 
+    #answer = resolver.query(hostName , "A")
+    answer = dns.resolver.Resolver().resolve(hostName , "A")
     return answer
 
 def getHostByName(hostName):
